@@ -19,7 +19,7 @@ ENV GOPATH=$APP_ROOT
 
 WORKDIR $APP_ROOT/src/
 ADD go.mod go.sum $APP_ROOT/src/
-RUN go mod download
+RUN go mod download -x
 
 # Add source code
 ADD ./cmd/ $APP_ROOT/src/cmd/
