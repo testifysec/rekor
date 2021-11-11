@@ -15,10 +15,10 @@
 # limitations under the License.
 
 
-DB="test"
-USER="test"
-PASS="zaphod"
-ROOTPASS=""
+DB="rekor"
+USER="user"
+PASS="password"
+ROOTPASS="admin"
 
 echo -e "Creating $DB database and $USER user account"
 
@@ -26,8 +26,8 @@ echo -e "Creating $DB database and $USER user account"
 mysql <<MYSQL_SCRIPT
 DROP DATABASE IF EXISTS $DB;
 CREATE DATABASE $DB;
-CREATE USER IF NOT EXISTS '$USER'@'localhost' IDENTIFIED BY '$PASS';
-GRANT ALL PRIVILEGES ON $USER.* TO '$DB'@'localhost';
+CREATE USER IF NOT EXISTS 'user;@'localhost' IDENTIFIED BY 'password';
+GRANT ALL PRIVILEGES ON rekor.* TO 'user'@'%';
 FLUSH PRIVILEGES;
 MYSQL_SCRIPT
 
