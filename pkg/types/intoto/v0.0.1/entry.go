@@ -19,6 +19,7 @@ import (
 	"bytes"
 	"context"
 	"crypto"
+	"crypto/rsa"
 	"crypto/sha256"
 	"encoding/base64"
 	"encoding/hex"
@@ -174,7 +175,14 @@ func (v *V001Entry) validate() error {
 	if v.IntotoObj.Content.Envelope == "" {
 		return nil
 	}
-	vfr, err := signature.LoadVerifier(pk.CryptoPubKey(), crypto.SHA256)
+	var vfr signature.Verifier
+	var err error
+	if rsa, ok := pk.CryptoPubKey().(*rsa.PublicKey); ok {
+		// TODO: Don't do this.. but for now it works
+		vfr, err = signature.LoadRSAPSSVerifier(rsa, crypto.SHA256, nil)
+	} else {
+		vfr, err = signature.LoadVerifier(pk.CryptoPubKey(), crypto.SHA256)
+	}
 	if err != nil {
 		return err
 	}
