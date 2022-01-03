@@ -2939,7 +2939,8 @@ func init() {
       "title": "intoto v0.0.1 Schema",
       "required": [
         "publicKey",
-        "content"
+        "content",
+        "signature"
       ],
       "properties": {
         "content": {
@@ -2978,6 +2979,11 @@ func init() {
           "description": "The public key that can verify the signature",
           "type": "string",
           "format": "byte"
+        },
+        "signature": {
+          "description": "Specifies the content of the signature inline within the attestation's envelope",
+          "format": "byte",
+          "byte": "string"
         }
       },
       "$schema": "http://json-schema.org/draft-07/schema",

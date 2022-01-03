@@ -60,6 +60,7 @@ type V001Entry struct {
 	IntotoObj models.IntotoV001Schema
 	keyObj    pki.PublicKey
 	env       dsse.Envelope
+	sig       []byte
 }
 
 func (v V001Entry) APIVersion() string {
@@ -146,11 +147,13 @@ func (v *V001Entry) Canonicalize(ctx context.Context) ([]byte, error) {
 		return nil, err
 	}
 	pkb := strfmt.Base64(pk)
+	sigb := strfmt.Base64(v.sig)
 
 	h := sha256.Sum256([]byte(v.IntotoObj.Content.Envelope))
 
 	canonicalEntry := models.IntotoV001Schema{
 		PublicKey: &pkb,
+		Signature: &sigb,
 		Content: &models.IntotoV001SchemaContent{
 			Hash: &models.IntotoV001SchemaContentHash{
 				Algorithm: swag.String(models.IntotoV001SchemaContentHashAlgorithmSha256),
@@ -202,9 +205,18 @@ func (v *V001Entry) validate() error {
 		return err
 	}
 
-	if _, err := dsseVerifier.Verify(&v.env); err != nil {
+	acceptedKey, err := dsseVerifier.Verify(&v.env)
+	if err != nil {
 		return err
 	}
+
+	if len(acceptedKey) == 0 {
+		return errors.New("dsse verification failed")
+	}
+
+	// since we're only passing one key as a verifier we should only ever get one accepted key, so this should be safe
+	v.sig = []byte(acceptedKey[0].Sig.Sig)
+
 	return nil
 }
 
@@ -277,12 +289,20 @@ func (v V001Entry) CreateFromArtifactProperties(_ context.Context, props types.A
 	}
 	kb := strfmt.Base64(publicKeyBytes)
 
+	sigBytes := props.SignatureBytes
+	if sigBytes == nil {
+		return nil, errors.New("signature must be provided to verify signature")
+	}
+
+	sigb := strfmt.Base64(sigBytes)
+
 	re := V001Entry{
 		IntotoObj: models.IntotoV001Schema{
 			Content: &models.IntotoV001SchemaContent{
 				Envelope: string(artifactBytes),
 			},
 			PublicKey: &kb,
+			Signature: &sigb,
 		},
 	}
 
