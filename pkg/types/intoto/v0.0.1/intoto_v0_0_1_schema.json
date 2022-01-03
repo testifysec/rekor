@@ -41,10 +41,16 @@
             "description": "The public key that can verify the signature",
             "type": "string",
             "format": "byte"
+        },
+        "signature": {
+            "description": "Specifies the content of the signature inline within the attestation's envelope",
+            "byte": "string",
+            "format": "byte"
         }
     },
     "required": [
         "publicKey",
-        "content"
+        "content",
+        "signature"
     ]
 }

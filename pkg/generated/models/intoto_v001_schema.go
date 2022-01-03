@@ -46,6 +46,11 @@ type IntotoV001Schema struct {
 	// Required: true
 	// Format: byte
 	PublicKey *strfmt.Base64 `json:"publicKey"`
+
+	// Specifies the content of the signature inline within the attestation's envelope
+	// Required: true
+	// Format: byte
+	Signature *strfmt.Base64 `json:"signature"`
 }
 
 // Validate validates this intoto v001 schema
@@ -57,6 +62,10 @@ func (m *IntotoV001Schema) Validate(formats strfmt.Registry) error {
 	}
 
 	if err := m.validatePublicKey(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.validateSignature(formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -89,6 +98,15 @@ func (m *IntotoV001Schema) validateContent(formats strfmt.Registry) error {
 func (m *IntotoV001Schema) validatePublicKey(formats strfmt.Registry) error {
 
 	if err := validate.Required("publicKey", "body", m.PublicKey); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (m *IntotoV001Schema) validateSignature(formats strfmt.Registry) error {
+
+	if err := validate.Required("signature", "body", m.Signature); err != nil {
 		return err
 	}
 
