@@ -312,6 +312,9 @@ func (m *DsseV001SchemaPayloadHash) UnmarshalBinary(b []byte) error {
 // swagger:model DsseV001SchemaSignaturesItems0
 type DsseV001SchemaSignaturesItems0 struct {
 
+	// collection of intermediate certificates that may be required to verify the signer's certificate
+	Intermediates []strfmt.Base64 `json:"intermediates"`
+
 	// optional id of the key used to create the signature
 	Keyid string `json:"keyid,omitempty"`
 

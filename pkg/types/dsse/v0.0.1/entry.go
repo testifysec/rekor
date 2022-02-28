@@ -215,7 +215,7 @@ func (v V001Entry) CreateFromArtifactProperties(_ context.Context, props types.A
 		}
 	}
 
-	env := dsse.Envelope{}
+	env := CustomDsseEnvelope{}
 	if err := json.Unmarshal(artifactBytes, &env); err != nil {
 		return nil, fmt.Errorf("payload must be a valid dsse envelope: %w", err)
 	}
@@ -244,7 +244,7 @@ func (v V001Entry) CreateFromArtifactProperties(_ context.Context, props types.A
 		allPubKeyBytes = append(allPubKeyBytes, publicKeyBytes)
 	}
 
-	keysBySig, err := verifyEnvelope(allPubKeyBytes, &env)
+	keysBySig, err := verifyEnvelope(allPubKeyBytes, env.ToDsseEnvelope())
 	if err != nil {
 		return nil, err
 	}
@@ -274,11 +274,17 @@ func (v V001Entry) CreateFromArtifactProperties(_ context.Context, props types.A
 			return nil, fmt.Errorf("could not canonicize key: %w", err)
 		}
 
+		intermediates := make([]strfmt.Base64, 0)
+		for _, int := range sig.Intermediates {
+			intermediates = append(intermediates, strfmt.Base64(int))
+		}
+
 		keyBytes := strfmt.Base64(canonKey)
 		re.DsseObj.Signatures = append(re.DsseObj.Signatures, &models.DsseV001SchemaSignaturesItems0{
-			Keyid:     sig.KeyID,
-			Sig:       sig.Sig,
-			PublicKey: keyBytes,
+			Keyid:         sig.KeyID,
+			Sig:           sig.Sig,
+			PublicKey:     keyBytes,
+			Intermediates: intermediates,
 		})
 	}
 
@@ -333,4 +339,32 @@ func verifyEnvelope(allPubKeyBytes [][]byte, env *dsse.Envelope) (map[string]*x5
 	}
 
 	return verifierBySig, nil
+}
+
+type CustomDsseEnvelope struct {
+	Payload     string                       `json:"payload"`
+	PayloadType string                       `json:"payloadType"`
+	Signatures  []SignatureWithIntermediates `json:"signatures"`
+}
+
+type SignatureWithIntermediates struct {
+	KeyID         string   `json:"keyid"`
+	Sig           string   `json:"sig"`
+	Intermediates []string `json:"intermediates,omitempty"`
+}
+
+func (cenv CustomDsseEnvelope) ToDsseEnvelope() *dsse.Envelope {
+	env := dsse.Envelope{
+		Payload:     cenv.Payload,
+		PayloadType: cenv.PayloadType,
+	}
+
+	for _, sig := range cenv.Signatures {
+		env.Signatures = append(env.Signatures, dsse.Signature{
+			KeyID: sig.KeyID,
+			Sig:   sig.Sig,
+		})
+	}
+
+	return &env
 }
