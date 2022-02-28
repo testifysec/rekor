@@ -1583,6 +1583,15 @@ func init() {
       "description": "a signature of the envelope's payload along with the public key for the signature",
       "type": "object",
       "properties": {
+        "intermediates": {
+          "description": "collection of intermediate certificates that may be required to verify the signer's certificate",
+          "type": "array",
+          "items": {
+            "description": "a intermediate certificate that may be required to verify the signer's certificate",
+            "type": "string",
+            "format": "byte"
+          }
+        },
         "keyid": {
           "description": "optional id of the key used to create the signature",
           "type": "string"

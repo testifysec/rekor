@@ -52,6 +52,15 @@
                         "type": "string",
                         "format": "byte",
                         "readOnly": true
+                    },
+                    "intermediates": {
+                        "description": "collection of intermediate certificates that may be required to verify the signer's certificate",
+                        "type": "array",
+                        "items": {
+                            "type": "string",
+                            "description": "a intermediate certificate that may be required to verify the signer's certificate",
+                            "format": "byte"
+                        }
                     }
                 }
             }
