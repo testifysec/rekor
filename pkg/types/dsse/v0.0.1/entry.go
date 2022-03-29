@@ -19,6 +19,7 @@ import (
 	"bytes"
 	"context"
 	"crypto"
+	"crypto/rsa"
 	"crypto/sha256"
 	"encoding/base64"
 	"encoding/hex"
@@ -310,7 +311,14 @@ func verifyEnvelope(allPubKeyBytes [][]byte, env *dsse.Envelope) (map[string]*x5
 			return nil, fmt.Errorf("could not parse public key as x509: %w", err)
 		}
 
-		vfr, err := signature.LoadVerifier(key.CryptoPubKey(), crypto.SHA256)
+		var vfr signature.Verifier
+		pubKey := key.CryptoPubKey()
+		if rsaKey, ok := pubKey.(*rsa.PublicKey); ok {
+			vfr, err = signature.LoadRSAPSSVerifier(rsaKey, crypto.SHA256, &rsa.PSSOptions{})
+		} else {
+			vfr, err = signature.LoadVerifier(key.CryptoPubKey(), crypto.SHA256)
+		}
+
 		if err != nil {
 			return nil, fmt.Errorf("could not load verifier: %w", err)
 		}
